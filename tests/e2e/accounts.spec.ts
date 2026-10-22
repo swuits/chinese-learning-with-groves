@@ -28,7 +28,7 @@ async function playQuiz(page: Page) {
     await page.getByRole("button", { name: /^1\s/ }).click();
     await page.getByRole("button", { name: /Next|See results/ }).click();
   }
-  await expect(page.getByText(/right/)).toBeVisible();
+  await expect(page.getByText(/You got \d+ of \d+/)).toBeVisible();
 }
 
 test("signed-out visitors see the pitch and are sent to sign up for games", async ({ page }) => {
@@ -164,4 +164,72 @@ test("a level and topic with too few words cannot be started", async ({ page }) 
   await page.getByRole("radio", { name: /Society & ideas/ }).click();
   await expect(page.getByText(/Too few words/)).toBeVisible();
   await expect(page.getByRole("button", { name: /Start/ })).toBeDisabled();
+});
+
+test("a new account sees today's goal on the home page", async ({ page }) => {
+  await signUp(page, newEmail());
+  await expect(page).toHaveURL(/^https?:\/\/[^/]+\/$/, { timeout: 20_000 });
+
+  await expect(page.getByRole("heading", { name: "Meet your first words" })).toBeVisible();
+  await expect(page.getByRole("meter", { name: "Today's practice goal" })).toHaveAttribute("aria-valuenow", "0");
+  await expect(page.getByRole("link", { name: /Start today's practice/ })).toBeVisible();
+});
+
+test("today's practice counts towards the daily goal and shows a recap", async ({ page }) => {
+  await signUp(page, newEmail(), "/login?next=/daily");
+  await expect(page).toHaveURL(/\/daily$/, { timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Today's practice" })).toBeVisible();
+
+  await playQuiz(page);
+
+  const recap = page.getByRole("region", { name: "Your grove" });
+  await expect(recap).toBeVisible();
+  await expect(page.getByText("10 of 20 today")).toBeVisible();
+  await expect(page.getByText(/1 day in a row/)).toBeVisible();
+
+  await page.getByRole("link", { name: "Back to your grove" }).click();
+  await expect(page.getByRole("meter", { name: "Today's practice goal" })).toHaveAttribute("aria-valuenow", "10");
+});
+
+test("mastering words makes the stalks grow in the recap", async ({ page }) => {
+  await signUp(page, newEmail(), "/login?next=/learn");
+  await expect(page).toHaveURL(/\/learn$/, { timeout: 20_000 });
+
+  // One answer so the account has a saved-progress slot on this device.
+  await page.getByRole("button", { name: /Start/ }).click();
+  await page.getByRole("button", { name: /Tap to reveal/ }).click();
+  await page.getByRole("button", { name: /Got it/ }).click();
+
+  // Put ten HSK 1 words one correct answer away from mastered, all due now.
+  await page.evaluate(() => {
+    const key = Object.keys(window.localStorage).find((k) => k.startsWith("groves:progress:v2:") && !k.endsWith(":guest"));
+    if (!key) throw new Error("no progress slot found");
+    const now = new Date();
+    const today = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const almost = { box: 3, seen: 4, correct: 4, wrong: 0, due: 0 };
+    const hanzi = ["爱", "八", "爸爸", "杯子", "北京", "本", "不", "不客气", "菜", "茶"];
+    window.localStorage.setItem(
+      key,
+      JSON.stringify({
+        words: Object.fromEntries(hanzi.map((h) => [h, almost])),
+        xp: 40,
+        streak: 1,
+        bestStreak: 1,
+        lastDay: today,
+        daily: { day: today, answered: 1 },
+        freezes: 0,
+      }),
+    );
+  });
+  await page.goto("/learn");
+  await page.getByRole("button", { name: /Start/ }).click();
+
+  for (let i = 0; i < 10; i++) {
+    await page.getByRole("button", { name: /Tap to reveal/ }).click();
+    await page.getByRole("button", { name: /Got it/ }).click();
+  }
+
+  await expect(page.getByText("10 words mastered. Your grove grew!")).toBeVisible();
+  await expect(page.getByRole("list", { name: "Newly mastered words" }).getByRole("listitem")).toHaveCount(10);
+  await expect(page.getByRole("region", { name: "Your grove" }).getByText("+10")).toBeVisible();
 });

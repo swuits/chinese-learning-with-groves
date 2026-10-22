@@ -4,6 +4,8 @@ export interface GroveStalk {
   mastered: number;
   total: number;
   ratio: number;
+  /** Words mastered since the round began; shown as a "+N" badge above the stalk. */
+  gain?: number;
 }
 
 interface GroveProps {
@@ -80,6 +82,28 @@ export function Grove({ stalks }: GroveProps) {
                   );
                 })}
               </g>
+              {stalk.gain !== undefined && stalk.gain > 0 && (
+                <g className="pop" style={{ transformBox: "fill-box", transformOrigin: "center" }}>
+                  <rect
+                    x={centerX - 24}
+                    y={Math.max(4, baseY - stalkHeight - 34)}
+                    width="48"
+                    height="24"
+                    rx="12"
+                    fill="var(--seal)"
+                  />
+                  <text
+                    x={centerX}
+                    y={Math.max(4, baseY - stalkHeight - 34) + 17}
+                    textAnchor="middle"
+                    fontSize="15"
+                    fontWeight="800"
+                    fill="var(--card)"
+                  >
+                    +{stalk.gain}
+                  </text>
+                </g>
+              )}
               <text
                 x={centerX}
                 y={height - 6}

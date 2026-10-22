@@ -12,7 +12,7 @@ export default function QuizPage() {
       wordCount={10}
       glyph="问"
     >
-      {(words, restart) => <Quiz words={words} onRestart={restart} />}
+      {(words, restart, before) => <Quiz words={words} before={before} onRestart={restart} />}
     </GameShell>
   );
 }

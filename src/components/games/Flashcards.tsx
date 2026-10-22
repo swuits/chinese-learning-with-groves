@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { Progress } from "@/lib/progress/progress";
 import { useProgress } from "@/lib/progress/store";
 import type { Word } from "@/lib/vocab/types";
 import { CATEGORY_META, LEVEL_LABEL } from "@/lib/vocab/types";
@@ -9,17 +10,18 @@ import { Summary } from "./Summary";
 
 interface FlashcardsProps {
   words: Word[];
+  before: Progress;
   onRestart: () => void;
 }
 
-export function Flashcards({ words, onRestart }: FlashcardsProps) {
+export function Flashcards({ words, before, onRestart }: FlashcardsProps) {
   const { answer } = useProgress();
   const [index, setIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [knownCount, setKnownCount] = useState(0);
 
   if (index >= words.length) {
-    return <Summary correct={knownCount} total={words.length} onAgain={onRestart} />;
+    return <Summary before={before} correct={knownCount} total={words.length} onAgain={onRestart} />;
   }
 
   const word = words[index];

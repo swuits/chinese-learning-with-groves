@@ -6,7 +6,10 @@ Every word you master makes a stalk of bamboo in your grove grow taller.
 - **1,197 words, HSK 1 to 4**, each with pinyin, a short English meaning, a level and one of 19 topics. Pick a level, a topic, or everything; new words arrive easiest level first
 - **Three games**: flip-card flashcards with spoken audio, a multiple-choice quiz with streak combos, and a timed pair-matching game
 - **Spaced repetition** (Leitner boxes): words you miss come back sooner, words you know come back later
-- **XP, levels and daily streaks**
+- **A daily loop**: a goal ring (20 answers a day), a "words ready to review" count, and a one-tap *Today's practice* session that puts due reviews first, then new words
+- **Streak freezes**: earn one for every 7 days in a row (up to 2); one is spent automatically to cover a missed day
+- **A recap after every round**: stalks grow with a "+N" badge, newly mastered words are listed, and goal and streak progress show
+- **XP and levels**
 - **Accounts** (Supabase Auth, email + password): games need an account, and progress syncs across devices
 
 ## Stack

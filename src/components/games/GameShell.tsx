@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { CategoryPicker, type CategoryChoice } from "@/components/ui/CategoryPicker";
 import { LevelPicker, type LevelChoice } from "@/components/ui/LevelPicker";
-import { pickSession } from "@/lib/progress/progress";
+import { pickSession, type Progress } from "@/lib/progress/progress";
 import { useProgress } from "@/lib/progress/store";
 import { CATEGORY_META, type Word } from "@/lib/vocab/types";
 import { WORDS } from "@/lib/vocab/words";
@@ -13,13 +13,19 @@ const MIN_POOL = 4;
 const choosePool = (level: LevelChoice, category: CategoryChoice): Word[] =>
   WORDS.filter((w) => (level === "all" || w.level === level) && (category === "all" || w.category === category));
 
+interface Session {
+  words: Word[];
+  /** Progress as it stood when the round began, so the recap can show what changed. */
+  before: Progress;
+}
+
 interface GameShellProps {
   title: string;
   kicker: string;
   blurb: string;
   wordCount: number;
   glyph: string;
-  children: (words: Word[], restart: () => void) => ReactNode;
+  children: (words: Word[], restart: () => void, before: Progress) => ReactNode;
 }
 
 /** Topic picker -> game -> back to picker. Each game only renders the "play" part. */
@@ -27,7 +33,7 @@ export function GameShell({ title, kicker, blurb, wordCount, glyph, children }: 
   const { progress } = useProgress();
   const [level, setLevel] = useState<LevelChoice>("all");
   const [choice, setChoice] = useState<CategoryChoice>("all");
-  const [words, setWords] = useState<Word[] | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   const poolSize = choosePool(level, choice).length;
   const canStart = poolSize >= MIN_POOL;
@@ -35,10 +41,13 @@ export function GameShell({ title, kicker, blurb, wordCount, glyph, children }: 
 
   const start = () => {
     if (!canStart) return;
-    setWords(pickSession(choosePool(level, choice), progress, wordCount, Date.now()));
+    setSession({
+      words: pickSession(choosePool(level, choice), progress, wordCount, Date.now()),
+      before: progress,
+    });
   };
 
-  if (words) return <>{children(words, () => setWords(null))}</>;
+  if (session) return <>{children(session.words, () => setSession(null), session.before)}</>;
 
   return (
     <section aria-labelledby="game-title" className="rise mx-auto max-w-2xl pt-4">

@@ -12,7 +12,7 @@ export default function MatchPage() {
       wordCount={6}
       glyph="配"
     >
-      {(words, restart) => <MatchGame words={words} onRestart={restart} />}
+      {(words, restart, before) => <MatchGame words={words} before={before} onRestart={restart} />}
     </GameShell>
   );
 }

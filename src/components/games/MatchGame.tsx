@@ -2,18 +2,20 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildMatchRound, type MatchTile } from "@/lib/quiz";
+import type { Progress } from "@/lib/progress/progress";
 import { useProgress } from "@/lib/progress/store";
 import type { Word } from "@/lib/vocab/types";
 import { Summary } from "./Summary";
 
 interface MatchGameProps {
   words: Word[];
+  before: Progress;
   onRestart: () => void;
 }
 
 const MISMATCH_DELAY_MS = 750;
 
-export function MatchGame({ words, onRestart }: MatchGameProps) {
+export function MatchGame({ words, before, onRestart }: MatchGameProps) {
   const { answer } = useProgress();
   const tiles = useMemo(() => buildMatchRound(words), [words]);
 
@@ -65,6 +67,7 @@ export function MatchGame({ words, onRestart }: MatchGameProps) {
     const clean = words.filter((w) => !slipped.has(w.id)).length;
     return (
       <Summary
+        before={before}
         correct={clean}
         total={words.length}
         onAgain={onRestart}

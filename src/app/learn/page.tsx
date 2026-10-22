@@ -12,7 +12,7 @@ export default function LearnPage() {
       wordCount={10}
       glyph="学"
     >
-      {(words, restart) => <Flashcards words={words} onRestart={restart} />}
+      {(words, restart, before) => <Flashcards words={words} before={before} onRestart={restart} />}
     </GameShell>
   );
 }

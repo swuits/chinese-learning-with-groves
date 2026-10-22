@@ -4,7 +4,7 @@ import { safeNextPath } from "@/lib/auth/schemas";
 import { getSupabaseEnv } from "./env";
 
 /** Pages that need an account. Everything else (home, login) is public. */
-const PROTECTED_PREFIXES = ["/learn", "/quiz", "/match"] as const;
+const PROTECTED_PREFIXES = ["/daily", "/learn", "/quiz", "/match"] as const;
 
 const CACHE_HEADERS = ["cache-control", "expires", "pragma"] as const;
 

@@ -9,12 +9,21 @@ export interface WordProgress {
   readonly due: number;
 }
 
+/** How many answers the learner has given on one calendar day (the day is stored as a key). */
+export interface DailyCount {
+  readonly day: string | null;
+  readonly answered: number;
+}
+
 export interface Progress {
   readonly words: Readonly<Record<string, WordProgress>>;
   readonly xp: number;
   readonly streak: number;
   readonly bestStreak: number;
   readonly lastDay: string | null;
+  readonly daily: DailyCount;
+  /** Spare days: each one quietly covers a missed day so the streak survives. */
+  readonly freezes: number;
 }
 
 export const EMPTY_PROGRESS: Progress = {
@@ -23,6 +32,8 @@ export const EMPTY_PROGRESS: Progress = {
   streak: 0,
   bestStreak: 0,
   lastDay: null,
+  daily: { day: null, answered: 0 },
+  freezes: 0,
 };
 
 const MINUTE = 60 * 1000;
@@ -31,6 +42,9 @@ const DAY = 24 * 60 * MINUTE;
 export const MAX_BOX = 5;
 export const MASTERED_BOX = 4;
 export const XP_PER_CORRECT = 10;
+export const DAILY_GOAL = 20;
+export const FREEZE_EVERY = 7;
+export const FREEZE_CAP = 2;
 
 /** Leitner schedule: how long to wait before a word in each box comes back. */
 const BOX_DELAY_MS: readonly number[] = [
@@ -44,7 +58,7 @@ const BOX_DELAY_MS: readonly number[] = [
 
 const FRESH_WORD: WordProgress = { box: 0, seen: 0, correct: 0, wrong: 0, due: 0 };
 
-const dayKey = (time: number): string => {
+export const dayKey = (time: number): string => {
   const d = new Date(time);
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 };
@@ -54,12 +68,41 @@ export const dayNumber = (key: string): number => {
   return Math.round(Date.UTC(y, m - 1, d) / DAY);
 };
 
-const nextStreak = (state: Progress, now: number): number => {
+/**
+ * The calendar day an answer counts towards: today, unless the clock has stepped back behind the
+ * last practice day (a changed time zone, say), in which case the later day stays in force.
+ */
+const effectiveDay = (state: Progress, now: number): string => {
   const today = dayKey(now);
-  if (state.lastDay === today) return state.streak;
-  if (state.lastDay === null) return 1;
-  return dayNumber(today) - dayNumber(state.lastDay) === 1 ? state.streak + 1 : 1;
+  if (state.lastDay === null) return today;
+  return dayNumber(today) < dayNumber(state.lastDay) ? state.lastDay : today;
 };
+
+interface StreakState {
+  readonly streak: number;
+  readonly freezes: number;
+}
+
+/**
+ * Moves the streak on for an answer given on `day`. Missed days are covered by freezes when there
+ * are enough of them; otherwise the streak starts again. A freeze is earned for every full week.
+ */
+const advanceStreak = (state: Progress, day: string): StreakState => {
+  if (state.lastDay === day) return { streak: state.streak, freezes: state.freezes };
+  if (state.lastDay === null) return { streak: 1, freezes: state.freezes };
+
+  const missed = dayNumber(day) - dayNumber(state.lastDay) - 1;
+  if (missed > state.freezes) return { streak: 1, freezes: state.freezes };
+
+  const streak = state.streak + 1;
+  const spare = state.freezes - missed;
+  const earned = streak % FREEZE_EVERY === 0 ? 1 : 0;
+  return { streak, freezes: Math.min(FREEZE_CAP, spare + earned) };
+};
+
+/** Answers given today. The stored count belongs to whichever day it was recorded on. */
+export const dailyAnswered = (state: Progress, now: number): number =>
+  state.daily.day === dayKey(now) ? state.daily.answered : 0;
 
 export const recordAnswer = (
   state: Progress,
@@ -69,7 +112,8 @@ export const recordAnswer = (
 ): Progress => {
   const prev = state.words[wordId] ?? FRESH_WORD;
   const box = isCorrect ? Math.min(prev.box + 1, MAX_BOX) : 0;
-  const streak = nextStreak(state, now);
+  const day = effectiveDay(state, now);
+  const { streak, freezes } = advanceStreak(state, day);
 
   return {
     words: {
@@ -85,7 +129,9 @@ export const recordAnswer = (
     xp: state.xp + (isCorrect ? XP_PER_CORRECT : 0),
     streak,
     bestStreak: Math.max(state.bestStreak, streak),
-    lastDay: dayKey(now),
+    lastDay: day,
+    daily: { day, answered: (state.daily.day === day ? state.daily.answered : 0) + 1 },
+    freezes,
   };
 };
 

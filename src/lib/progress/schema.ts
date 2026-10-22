@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { migrateLegacyIds } from "./legacy";
-import { MAX_BOX, type Progress } from "./progress";
+import { FREEZE_CAP, MAX_BOX, type Progress } from "./progress";
 
 const MAX_WORD_ID_LENGTH = 64;
 
@@ -18,6 +18,11 @@ const progressSchema = z.object({
   streak: z.number().int().min(0),
   bestStreak: z.number().int().min(0),
   lastDay: z.string().max(16).nullable(),
+  // Added later: progress saved before then has neither, so they default.
+  daily: z
+    .object({ day: z.string().max(16).nullable(), answered: z.number().int().min(0) })
+    .default({ day: null, answered: 0 }),
+  freezes: z.number().int().min(0).max(FREEZE_CAP).default(0),
 });
 
 /** Anything read from localStorage or the database is untrusted until it passes this. */

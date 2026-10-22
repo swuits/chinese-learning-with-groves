@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { XP_PER_CORRECT } from "@/lib/progress/progress";
+import { XP_PER_CORRECT, type Progress } from "@/lib/progress/progress";
+import { SessionRecap } from "./SessionRecap";
 
 interface SummaryProps {
   correct: number;
   total: number;
   onAgain: () => void;
+  /** Progress as it stood when the round began. */
+  before: Progress;
   extra?: string;
 }
 
@@ -15,12 +20,12 @@ const verdict = (ratio: number): { title: string; emoji: string } => {
   return { title: "Every grove starts small", emoji: "🌰" };
 };
 
-export function Summary({ correct, total, onAgain, extra }: SummaryProps) {
+export function Summary({ correct, total, onAgain, before, extra }: SummaryProps) {
   const { title, emoji } = verdict(total === 0 ? 0 : correct / total);
 
   return (
     <section aria-labelledby="summary-title" className="pop mx-auto max-w-lg pt-6 text-center">
-      <div className="rounded-[2rem] border border-line bg-card p-8 shadow-[var(--shadow-lift)]">
+      <div className="rounded-[2rem] border border-line bg-card p-6 shadow-[var(--shadow-lift)] sm:p-8">
         <div aria-hidden className="text-6xl">
           {emoji}
         </div>
@@ -35,6 +40,9 @@ export function Summary({ correct, total, onAgain, extra }: SummaryProps) {
         <p className="mt-4 inline-block rounded-full bg-gold/40 px-4 py-1.5 font-bold">
           +{correct * XP_PER_CORRECT} XP
         </p>
+
+        <SessionRecap before={before} />
+
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             type="button"
@@ -48,7 +56,7 @@ export function Summary({ correct, total, onAgain, extra }: SummaryProps) {
             href="/"
             className="press rounded-2xl border border-line bg-card px-6 py-3 font-display text-lg font-semibold"
           >
-            Visit your grove
+            Back to your grove
           </Link>
         </div>
       </div>

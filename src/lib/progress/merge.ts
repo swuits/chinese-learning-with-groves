@@ -1,4 +1,4 @@
-import { dayNumber, type Progress, type WordProgress } from "./progress";
+import { dayNumber, type DailyCount, type Progress, type WordProgress } from "./progress";
 
 export const pickWord = (a: WordProgress, b: WordProgress): WordProgress => {
   if (a.seen !== b.seen) return a.seen > b.seen ? a : b;
@@ -13,6 +13,14 @@ const pickStreakSide = (a: Progress, b: Progress): Progress => {
   const dayB = dayOrMin(b.lastDay);
   if (dayA !== dayB) return dayA > dayB ? a : b;
   return a.streak >= b.streak ? a : b;
+};
+
+/** The more recent day wins; on the same day the higher count wins. */
+const pickDaily = (a: DailyCount, b: DailyCount): DailyCount => {
+  const dayA = dayOrMin(a.day);
+  const dayB = dayOrMin(b.day);
+  if (dayA !== dayB) return dayA > dayB ? a : b;
+  return a.answered >= b.answered ? a : b;
 };
 
 /**
@@ -35,6 +43,9 @@ export const mergeProgress = (a: Progress, b: Progress): Progress => {
     streak: streakSide.streak,
     bestStreak: Math.max(a.bestStreak, b.bestStreak),
     lastDay: streakSide.lastDay,
+    daily: pickDaily(a.daily, b.daily),
+    // Freezes are spent as days pass, so the side whose streak is current knows the true number.
+    freezes: streakSide.freezes,
   };
 };
 
@@ -49,6 +60,9 @@ export const sameProgress = (a: Progress, b: Progress): boolean => {
     a.streak === b.streak &&
     a.bestStreak === b.bestStreak &&
     a.lastDay === b.lastDay &&
+    a.freezes === b.freezes &&
+    a.daily.day === b.daily.day &&
+    a.daily.answered === b.daily.answered &&
     idsA.every((id) => b.words[id] !== undefined && sameWord(a.words[id], b.words[id]))
   );
 };

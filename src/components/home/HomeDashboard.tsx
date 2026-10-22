@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Grove } from "@/components/grove/Grove";
+import { TodayPanel } from "@/components/home/TodayPanel";
 import { levelFromXp, masteredCount, wordsSeenCount } from "@/lib/progress/progress";
 import { categoryStats, levelStats } from "@/lib/progress/selectors";
 import { useProgress } from "@/lib/progress/store";
@@ -48,11 +49,11 @@ export function HomeDashboard() {
             makes a stalk of bamboo taller.
           </p>
           <Link
-            href={isSignedOut ? "/login" : "/quiz"}
+            href={isSignedOut ? "/login" : "/daily"}
             className="press mt-7 inline-block rounded-2xl bg-seal px-7 py-4 font-display text-xl font-semibold text-card"
             style={{ "--press-edge": "var(--seal-deep)" } as React.CSSProperties}
           >
-            {isSignedOut ? "Create a free account →" : "Practice now →"}
+            {isSignedOut ? "Create a free account →" : "Today's practice →"}
           </Link>
           {isSignedOut && (
             <p className="mt-3 text-sm text-ink-soft">
@@ -73,6 +74,8 @@ export function HomeDashboard() {
           </div>
         </div>
       </section>
+
+      {authStatus === "signed-in" && <TodayPanel />}
 
       <section aria-label="Level progress" className="rise rounded-2xl border border-line bg-card p-4" style={{ "--i": 3 } as React.CSSProperties}>
         <div className="flex items-baseline justify-between">

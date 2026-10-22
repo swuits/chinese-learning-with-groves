@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { buildChoiceQuestion, type QuizMode } from "@/lib/quiz";
+import type { Progress } from "@/lib/progress/progress";
 import { useProgress } from "@/lib/progress/store";
 import type { Word } from "@/lib/vocab/types";
 import { WORDS } from "@/lib/vocab/words";
@@ -11,6 +12,7 @@ import { Summary } from "./Summary";
 
 interface QuizProps {
   words: Word[];
+  before: Progress;
   onRestart: () => void;
 }
 
@@ -22,7 +24,7 @@ const MODE_LABEL: Record<QuizMode, string> = {
   "pinyin-to-en": "What does this sound mean?",
 };
 
-export function Quiz({ words, onRestart }: QuizProps) {
+export function Quiz({ words, before, onRestart }: QuizProps) {
   const { answer } = useProgress();
   const questions = useMemo(
     () => words.map((word, i) => buildChoiceQuestion(WORDS, word, MODES[i % MODES.length])),
@@ -67,7 +69,7 @@ export function Quiz({ words, onRestart }: QuizProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDone, hasAnswered, question]);
 
-  if (isDone) return <Summary correct={score} total={questions.length} onAgain={onRestart} />;
+  if (isDone) return <Summary before={before} correct={score} total={questions.length} onAgain={onRestart} />;
 
   const answerWord = words[index];
   const isWrong = hasAnswered && picked !== question.answerId;
