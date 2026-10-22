@@ -79,7 +79,8 @@ test("a new account lands where they were going, plays, and progress follows the
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: /^Sign in/ }).click();
-  await expect(page).toHaveURL(/^https?:\/\/[^/]+\/$/);
+  // A deployed server can take a few seconds on a cold start.
+  await expect(page).toHaveURL(/^https?:\/\/[^/]+\/$/, { timeout: 20_000 });
 
   const met = page.getByText("met", { exact: true }).locator("xpath=preceding-sibling::p");
   await expect(met).toHaveText("10", { timeout: 15_000 });
