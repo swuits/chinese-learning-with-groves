@@ -1,6 +1,6 @@
 import { dayNumber, type Progress, type WordProgress } from "./progress";
 
-const pickWord = (a: WordProgress, b: WordProgress): WordProgress => {
+export const pickWord = (a: WordProgress, b: WordProgress): WordProgress => {
   if (a.seen !== b.seen) return a.seen > b.seen ? a : b;
   return a.due >= b.due ? a : b;
 };

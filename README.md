@@ -3,7 +3,7 @@
 Practice the Chinese words that matter most with flashcards, quizzes and a matching game.
 Every word you master makes a stalk of bamboo in your grove grow taller.
 
-- **100 essential words** across 8 topics (greetings, numbers, people, food, actions, places, time, describing)
+- **1,197 words, HSK 1 to 4**, each with pinyin, a short English meaning, a level and one of 19 topics. Pick a level, a topic, or everything; new words arrive easiest level first
 - **Three games**: flip-card flashcards with spoken audio, a multiple-choice quiz with streak combos, and a timed pair-matching game
 - **Spaced repetition** (Leitner boxes): words you miss come back sooner, words you know come back later
 - **XP, levels and daily streaks**
@@ -33,20 +33,36 @@ E2E_BASE_URL=https://your-site.vercel.app npm run test:e2e   # same tests agains
 The e2e tests create accounts named `groves-e2e-*@example.com`. Remove them afterwards with
 `delete from auth.users where email like 'groves-e2e-%@example.com'` (progress rows cascade).
 
+## Word list
+
+Words live in `src/lib/vocab/lists/` (`hsk1.ts` to `hsk4b.ts`) as `[hanzi, pinyin, English, topic]` rows. The
+membership of each level comes from the MIT-licensed
+[complete-hsk-vocabulary](https://github.com/drkameleon/complete-hsk-vocabulary) list (old HSK 1 to 4); the pinyin,
+meanings and topics are written by hand, because the dataset's first dictionary entry is often the wrong sense
+(it lists 都 as "surname Du"). Tests keep every English meaning distinct, every topic non-empty, and every word
+supplied with audio. `src/lib/vocab/synonyms.ts` lists near-synonyms (大概 / 大约) that a quiz must never offer
+side by side.
+
 ## Word audio
 
-Every word has a recording in `public/audio/` (neural Mandarin voice `zh-CN-XiaoxiaoNeural`, trimmed,
-loudness-matched and faded at the edges so playback never clicks). Filenames come from
-`audioKey()` in `src/lib/vocab/audio.ts`, and a test fails if any word is missing its file.
-
-After adding words, regenerate only the new ones:
+Every word has a recording in `public/audio/` (neural Mandarin voice `zh-CN-XiaoyiNeural`, trimmed, peak-matched,
+with tiny fades so playback never clicks). Filenames come from `audioKey()` in `src/lib/vocab/audio.ts`.
 
 ```bash
 pip install edge-tts      # plus ffmpeg on your PATH
-npm run audio             # add --force to re-record everything
+npm run audio             # records any word that has no file yet
+npm run audio -- --force  # re-record everything
+npm run audio -- --only=还,为   # re-record specific words
 ```
 
-If a recording ever fails to load, the button falls back to the browser's best Chinese voice.
+Set `EDGE_TTS_BIN` and `EDGE_TTS_PYTHON` if `edge-tts` is not on your PATH.
+
+The voice reads some words wrongly on its own. Fixes live in `scripts/spoken-as.mjs`: a replacement text, or a
+phrase to record the word inside (`scripts/cut-from-phrase.py` cuts the word out using the service's word
+timings). Found so far: 还 (read as *huán*), 为 (*wéi*), 只 (*zhī*), 种 (*zhòng*), the particles 得 / 地 / 过 / 了,
+and 大夫. If a word sounds wrong, add an entry and re-record it.
+
+If a recording fails to load, the button falls back to the browser's best Chinese voice.
 
 ## How accounts and sync work
 
@@ -67,7 +83,7 @@ src/
 ├── app/               routes: /, /learn, /quiz, /match
 ├── components/        games, grove visual, layout, ui
 └── lib/
-    ├── vocab/         word list and types
+    ├── vocab/         word lists (by HSK level), types, audio keys, synonym groups
     ├── progress/      spaced-repetition logic, merge, sync store, cloud adapter
     ├── auth/          sign-up/login validation and safe redirect paths
     ├── supabase/      browser, server and proxy clients

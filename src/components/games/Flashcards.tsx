@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useProgress } from "@/lib/progress/store";
 import type { Word } from "@/lib/vocab/types";
-import { CATEGORY_META } from "@/lib/vocab/types";
+import { CATEGORY_META, LEVEL_LABEL } from "@/lib/vocab/types";
 import { SpeakButton } from "./SpeakButton";
 import { Summary } from "./Summary";
 
@@ -46,6 +46,9 @@ export function Flashcards({ words, onRestart }: FlashcardsProps) {
           >
             <span className="rounded-full bg-paper-deep px-3 py-1 text-xs font-bold uppercase tracking-widest text-bamboo">
               {CATEGORY_META[word.category].emoji} {CATEGORY_META[word.category].label}
+            </span>
+            <span className="-mt-2 text-xs font-bold uppercase tracking-widest text-ink-soft">
+              {LEVEL_LABEL[word.level]}
             </span>
             <span className="font-hanzi text-[7rem] font-black leading-none sm:text-[9rem]">{word.hanzi}</span>
             <span className="text-sm font-semibold text-ink-soft">Tap to reveal</span>

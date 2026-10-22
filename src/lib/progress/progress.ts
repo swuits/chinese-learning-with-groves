@@ -1,5 +1,5 @@
 import { shuffle } from "@/lib/shuffle";
-import type { Word } from "@/lib/vocab/types";
+import { LEVELS, type Word } from "@/lib/vocab/types";
 
 export interface WordProgress {
   readonly box: number;
@@ -115,7 +115,7 @@ export const masteredCount = (state: Progress): number =>
 
 export const wordsSeenCount = (state: Progress): number => Object.keys(state.words).length;
 
-/** Due reviews first (most overdue on top), then brand-new words, then the rest. */
+/** Due reviews first (most overdue on top), then brand-new words (easiest level first), then the rest. */
 export const pickSession = (
   pool: readonly Word[],
   state: Progress,
@@ -126,9 +126,13 @@ export const pickSession = (
   const due = pool
     .filter((w) => state.words[w.id] && state.words[w.id].due <= now)
     .sort((a, b) => state.words[a.id].due - state.words[b.id].due);
-  const fresh = shuffle(
-    pool.filter((w) => !state.words[w.id]),
-    rng,
+  // New words come from the lowest level that still has any, so learners build up in order.
+  const unseen = pool.filter((w) => !state.words[w.id]);
+  const fresh = LEVELS.flatMap((level) =>
+    shuffle(
+      unseen.filter((w) => w.level === level),
+      rng,
+    ),
   );
   const waiting = shuffle(
     pool.filter((w) => state.words[w.id] && state.words[w.id].due > now),

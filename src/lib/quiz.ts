@@ -1,4 +1,5 @@
 import { shuffle } from "@/lib/shuffle";
+import { areConfusable } from "@/lib/vocab/synonyms";
 import type { Word } from "@/lib/vocab/types";
 
 export { shuffle };
@@ -50,7 +51,15 @@ export const buildChoiceQuestion = (
   rng: () => number = Math.random,
 ): ChoiceQuestion => {
   const answerLabel = labelFor(target, mode);
-  const others = pool.filter((w) => w.id !== target.id && labelFor(w, mode) !== answerLabel);
+  // A fair question has exactly one right answer: no same-sounding words when the prompt is
+  // pinyin, and no near-synonyms of the answer.
+  const others = pool.filter(
+    (w) =>
+      w.id !== target.id &&
+      labelFor(w, mode) !== answerLabel &&
+      !areConfusable(w.hanzi, target.hanzi) &&
+      !(mode === "pinyin-to-en" && w.pinyin === target.pinyin),
+  );
   const sameCategory = shuffle(
     others.filter((w) => w.category === target.category),
     rng,

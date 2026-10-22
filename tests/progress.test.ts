@@ -110,6 +110,18 @@ describe("pickSession", () => {
     expect(picked[0].id).toBe(target.id);
   });
 
+  it("introduces brand-new words from the lowest level first", () => {
+    const picked = pickSession(WORDS, EMPTY_PROGRESS, 20, T0, () => 0.5);
+    expect(picked.every((w) => w.level === 1)).toBe(true);
+  });
+
+  it("moves on to the next level once the lower one is all started", () => {
+    let state = EMPTY_PROGRESS;
+    for (const w of WORDS.filter((x) => x.level === 1)) state = recordAnswer(state, w.id, true, T0);
+    const picked = pickSession(WORDS, state, 10, T0, () => 0.5);
+    expect(picked.every((w) => w.level === 2)).toBe(true);
+  });
+
   it("does not return more words than exist", () => {
     expect(pickSession(WORDS.slice(0, 3), EMPTY_PROGRESS, 10, T0, () => 0.5)).toHaveLength(3);
   });

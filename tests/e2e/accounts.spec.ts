@@ -139,3 +139,29 @@ test("the hear-it button plays a real recording and returns to ready", async ({ 
   await expect(hear).toContainText("Playing…");
   await expect(hear).toContainText("Hear it", { timeout: 5_000 });
 });
+
+test("the level and topic pickers narrow what you practice", async ({ page }) => {
+  await signUp(page, newEmail(), "/login?next=/learn");
+  await expect(page).toHaveURL(/\/learn$/, { timeout: 20_000 });
+
+  await page.getByRole("radio", { name: "HSK 3" }).click();
+  await page.getByText(/^Topic:/).click();
+  await page.getByRole("radio", { name: /Food & drink/ }).click();
+  await expect(page.getByText(/words to draw from/)).toBeVisible();
+
+  await page.getByRole("button", { name: /Start/ }).click();
+  // The card front shows which level and topic the word comes from.
+  await expect(page.getByText("HSK 3").first()).toBeVisible();
+  await expect(page.getByText(/Food & drink/).first()).toBeVisible();
+});
+
+test("a level and topic with too few words cannot be started", async ({ page }) => {
+  await signUp(page, newEmail(), "/login?next=/quiz");
+  await expect(page).toHaveURL(/\/quiz$/, { timeout: 20_000 });
+
+  await page.getByRole("radio", { name: "HSK 1" }).click();
+  await page.getByText(/^Topic:/).click();
+  await page.getByRole("radio", { name: /Society & ideas/ }).click();
+  await expect(page.getByText(/Too few words/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /Start/ })).toBeDisabled();
+});

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Grove } from "@/components/grove/Grove";
 import { levelFromXp, masteredCount, wordsSeenCount } from "@/lib/progress/progress";
-import { categoryStats } from "@/lib/progress/selectors";
+import { categoryStats, levelStats } from "@/lib/progress/selectors";
 import { useProgress } from "@/lib/progress/store";
-import { CATEGORY_META, type Category } from "@/lib/vocab/types";
+import { CATEGORY_META, LEVEL_LABEL, LEVELS, type Category } from "@/lib/vocab/types";
 import { WORDS } from "@/lib/vocab/words";
 
 const CATEGORIES = Object.keys(CATEGORY_META) as Category[];
@@ -23,6 +23,13 @@ export function HomeDashboard() {
   const isSignedOut = authStatus === "signed-out";
   const { level, into, needed } = levelFromXp(progress.xp);
   const stats = categoryStats(WORDS, progress, CATEGORIES);
+  const stalks = levelStats(WORDS, progress, LEVELS).map((stat) => ({
+    key: `level-${stat.level}`,
+    label: LEVEL_LABEL[stat.level],
+    mastered: stat.mastered,
+    total: stat.total,
+    ratio: stat.ratio,
+  }));
   const mastered = masteredCount(progress);
   const seen = wordsSeenCount(progress);
 
@@ -37,8 +44,8 @@ export function HomeDashboard() {
             <span className="italic text-bamboo">one word</span> at a time.
           </h1>
           <p className="mt-5 max-w-md text-lg text-ink-soft">
-            {WORDS.length} essential words, three quick games. Every word you truly learn makes a stalk of bamboo
-            taller.
+            {WORDS.length.toLocaleString()} words from HSK 1 to 4, three quick games. Every word you truly learn
+            makes a stalk of bamboo taller.
           </p>
           <Link
             href={isSignedOut ? "/login" : "/quiz"}
@@ -58,7 +65,7 @@ export function HomeDashboard() {
         </div>
 
         <div className="rise relative rounded-[2rem] border border-line bg-card p-5 shadow-[var(--shadow-lift)]" style={{ "--i": 2 } as React.CSSProperties}>
-          <Grove stats={stats} />
+          <Grove stalks={stalks} />
           <div className="mt-2 grid grid-cols-3 gap-2 text-center">
             <Tally value={mastered} label="mastered" />
             <Tally value={seen} label="met" />
@@ -112,7 +119,7 @@ export function HomeDashboard() {
         <h2 id="topics-heading" className="font-display text-3xl font-semibold">
           Your topics
         </h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2" role="list">
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
           {stats.map((stat) => (
             <li key={stat.category} className="flex items-center gap-4 rounded-2xl border border-line bg-card p-4">
               <span aria-hidden className="text-3xl">

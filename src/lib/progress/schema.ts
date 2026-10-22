@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { migrateLegacyIds } from "./legacy";
 import { MAX_BOX, type Progress } from "./progress";
 
 const MAX_WORD_ID_LENGTH = 64;
@@ -22,5 +23,5 @@ const progressSchema = z.object({
 /** Anything read from localStorage or the database is untrusted until it passes this. */
 export const parseProgress = (value: unknown): Progress | null => {
   const result = progressSchema.safeParse(value);
-  return result.success ? result.data : null;
+  return result.success ? migrateLegacyIds(result.data) : null;
 };

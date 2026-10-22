@@ -1,28 +1,35 @@
-import { CATEGORY_META } from "@/lib/vocab/types";
-import type { CategoryStat } from "@/lib/progress/selectors";
-
-interface GroveProps {
-  stats: readonly CategoryStat[];
+export interface GroveStalk {
+  key: string;
+  label: string;
+  mastered: number;
+  total: number;
+  ratio: number;
 }
 
-const STALK_WIDTH = 34;
-const GAP = 38;
-const BASE_HEIGHT = 80;
-const MAX_EXTRA = 120;
+interface GroveProps {
+  stalks: readonly GroveStalk[];
+}
 
-/** One bamboo stalk per topic. The more words you master, the taller it grows. */
-export function Grove({ stats }: GroveProps) {
-  const width = stats.length * (STALK_WIDTH + GAP) + GAP;
-  const height = BASE_HEIGHT + MAX_EXTRA + 50;
+const STALK_WIDTH = 46;
+const GAP = 62;
+const BASE_HEIGHT = 80;
+const MAX_EXTRA = 130;
+const MAX_LEAVES = 4;
+
+/**
+ * One bamboo stalk per level. Height follows the square root of progress, so the first words
+ * you master visibly lift a stalk instead of crawling up by a pixel at a time.
+ */
+export function Grove({ stalks }: GroveProps) {
+  const width = stalks.length * (STALK_WIDTH + GAP) + GAP;
+  const height = BASE_HEIGHT + MAX_EXTRA + 56;
 
   return (
     <figure className="m-0">
       <svg
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label={`Your grove: ${stats
-          .map((s) => `${CATEGORY_META[s.category].label} ${s.mastered} of ${s.total} mastered`)
-          .join(", ")}`}
+        aria-label={`Your grove: ${stalks.map((s) => `${s.label} ${s.mastered} of ${s.total} words mastered`).join(", ")}`}
         className="h-auto w-full"
       >
         <defs>
@@ -32,26 +39,21 @@ export function Grove({ stats }: GroveProps) {
             <stop offset="1" stopColor="var(--bamboo)" />
           </linearGradient>
         </defs>
-        <ellipse cx={width / 2} cy={height - 18} rx={width / 2 - 8} ry="12" fill="var(--paper-deep)" />
+        <ellipse cx={width / 2} cy={height - 26} rx={width / 2 - 8} ry="12" fill="var(--paper-deep)" />
 
-        {stats.map((stat, index) => {
-          const stalkHeight = BASE_HEIGHT + stat.ratio * MAX_EXTRA;
+        {stalks.map((stalk, index) => {
+          const growth = Math.sqrt(stalk.ratio);
+          const stalkHeight = BASE_HEIGHT + growth * MAX_EXTRA;
           const x = GAP + index * (STALK_WIDTH + GAP);
-          const baseY = height - 22;
+          const baseY = height - 30;
           const joints = Math.max(1, Math.round(stalkHeight / 38));
-          const leaves = Math.round(stat.ratio * 4);
+          const leaves = Math.round(growth * MAX_LEAVES);
+          const centerX = x + STALK_WIDTH / 2;
 
           return (
-            <g key={stat.category} className="sway" style={{ "--i": index } as React.CSSProperties}>
+            <g key={stalk.key} className="sway" style={{ "--i": index } as React.CSSProperties}>
               <g className="grow" style={{ "--i": index } as React.CSSProperties}>
-                <rect
-                  x={x}
-                  y={baseY - stalkHeight}
-                  width={STALK_WIDTH}
-                  height={stalkHeight}
-                  rx="8"
-                  fill="url(#stalk)"
-                />
+                <rect x={x} y={baseY - stalkHeight} width={STALK_WIDTH} height={stalkHeight} rx="9" fill="url(#stalk)" />
                 {Array.from({ length: joints }, (_, j) => (
                   <rect
                     key={j}
@@ -66,12 +68,11 @@ export function Grove({ stats }: GroveProps) {
                 ))}
                 {Array.from({ length: leaves }, (_, l) => {
                   const side = l % 2 === 0 ? 1 : -1;
-                  const ly = baseY - stalkHeight + 14 + l * 20;
-                  const lx = x + STALK_WIDTH / 2;
+                  const leafY = baseY - stalkHeight + 14 + l * 20;
                   return (
                     <path
                       key={l}
-                      d={`M${lx} ${ly} q${side * 34} -22 ${side * 52} 2 q${side * -26} 14 ${side * -52} -2z`}
+                      d={`M${centerX} ${leafY} q${side * 38} -24 ${side * 58} 2 q${side * -28} 16 ${side * -58} -2z`}
                       fill="var(--leaf)"
                       stroke="var(--bamboo)"
                       strokeWidth="1"
@@ -80,13 +81,15 @@ export function Grove({ stats }: GroveProps) {
                 })}
               </g>
               <text
-                x={x + STALK_WIDTH / 2}
-                y={height - 3}
+                x={centerX}
+                y={height - 6}
                 textAnchor="middle"
-                fontSize="15"
+                fontSize="17"
+                fontWeight="700"
+                fill="var(--ink-soft)"
                 aria-hidden
               >
-                {CATEGORY_META[stat.category].emoji}
+                {stalk.label}
               </text>
             </g>
           );
