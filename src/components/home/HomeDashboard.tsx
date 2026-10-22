@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Grove } from "@/components/grove/Grove";
 import { levelFromXp, masteredCount, wordsSeenCount } from "@/lib/progress/progress";
 import { categoryStats } from "@/lib/progress/selectors";
@@ -18,6 +19,8 @@ const MODES = [
 
 export function HomeDashboard() {
   const { progress } = useProgress();
+  const { status: authStatus } = useAuth();
+  const isSignedOut = authStatus === "signed-out";
   const { level, into, needed } = levelFromXp(progress.xp);
   const stats = categoryStats(WORDS, progress, CATEGORIES);
   const mastered = masteredCount(progress);
@@ -38,12 +41,20 @@ export function HomeDashboard() {
             taller.
           </p>
           <Link
-            href="/quiz"
+            href={isSignedOut ? "/login" : "/quiz"}
             className="press mt-7 inline-block rounded-2xl bg-seal px-7 py-4 font-display text-xl font-semibold text-card"
             style={{ "--press-edge": "var(--seal-deep)" } as React.CSSProperties}
           >
-            Practise now →
+            {isSignedOut ? "Create a free account →" : "Practise now →"}
           </Link>
+          {isSignedOut && (
+            <p className="mt-3 text-sm text-ink-soft">
+              Your progress, streak and level are saved to your account.{" "}
+              <Link href="/login?mode=signin" className="font-bold text-bamboo-deep underline underline-offset-4">
+                Log in
+              </Link>
+            </p>
+          )}
         </div>
 
         <div className="rise relative rounded-[2rem] border border-line bg-card p-5 shadow-[var(--shadow-lift)]" style={{ "--i": 2 } as React.CSSProperties}>

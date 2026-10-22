@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { StatChips } from "@/components/ui/StatChips";
+import { AccountMenu } from "@/components/auth/AccountMenu";
 
 const LINKS = [
   { href: "/learn", label: "Cards" },
@@ -51,7 +51,7 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <StatChips />
+        <AccountMenu />
       </div>
     </header>
   );

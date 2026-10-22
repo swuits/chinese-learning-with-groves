@@ -49,7 +49,7 @@ const dayKey = (time: number): string => {
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 };
 
-const dayNumber = (key: string): number => {
+export const dayNumber = (key: string): number => {
   const [y, m, d] = key.split("-").map(Number);
   return Math.round(Date.UTC(y, m - 1, d) / DAY);
 };
