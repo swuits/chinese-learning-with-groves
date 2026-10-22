@@ -45,7 +45,7 @@ export function HomeDashboard() {
             className="press mt-7 inline-block rounded-2xl bg-seal px-7 py-4 font-display text-xl font-semibold text-card"
             style={{ "--press-edge": "var(--seal-deep)" } as React.CSSProperties}
           >
-            {isSignedOut ? "Create a free account →" : "Practise now →"}
+            {isSignedOut ? "Create a free account →" : "Practice now →"}
           </Link>
           {isSignedOut && (
             <p className="mt-3 text-sm text-ink-soft">

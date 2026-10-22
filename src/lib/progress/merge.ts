@@ -17,7 +17,7 @@ const pickStreakSide = (a: Progress, b: Progress): Progress => {
 
 /**
  * Combines progress from two devices without losing either: every word is kept (the more
- * practised copy wins), xp and best streak never go down, and the fresher streak is used.
+ * practiced copy wins), xp and best streak never go down, and the fresher streak is used.
  */
 export const mergeProgress = (a: Progress, b: Progress): Progress => {
   const ids = new Set([...Object.keys(a.words), ...Object.keys(b.words)]);

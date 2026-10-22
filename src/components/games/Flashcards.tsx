@@ -53,12 +53,13 @@ export function Flashcards({ words, onRestart }: FlashcardsProps) {
 
           <div
             aria-hidden={!isFlipped}
+            inert={!isFlipped}
             className="flip-face flip-back absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[2rem] bg-bamboo-deep p-6 text-center text-card shadow-[var(--shadow-lift)]"
           >
             <span className="font-hanzi text-5xl font-black">{word.hanzi}</span>
             <span className="font-display text-3xl italic text-leaf">{word.pinyin}</span>
             <span className="text-2xl font-bold">{word.en}</span>
-            <SpeakButton text={word.hanzi} />
+            <SpeakButton word={word} />
           </div>
         </div>
       </div>

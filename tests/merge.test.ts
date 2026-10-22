@@ -28,7 +28,7 @@ describe("mergeProgress", () => {
     expect(merged.bestStreak).toBe(9);
   });
 
-  it("uses the streak from whichever side practised most recently", () => {
+  it("uses the streak from whichever side practiced most recently", () => {
     const older = recordAnswer(EMPTY_PROGRESS, "a", true, T0);
     const newer = recordAnswer(recordAnswer(EMPTY_PROGRESS, "a", true, T0 + 8 * DAY), "a", true, T0 + 9 * DAY);
     const merged = mergeProgress(older, newer);

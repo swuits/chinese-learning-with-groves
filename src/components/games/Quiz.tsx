@@ -113,7 +113,7 @@ export function Quiz({ words, onRestart }: QuizProps) {
               <span className="font-hanzi font-bold">{answerWord.hanzi}</span> ·{" "}
               <span className="font-display italic text-bamboo">{answerWord.pinyin}</span> · {answerWord.en}
             </p>
-            <SpeakButton text={answerWord.hanzi} />
+            <SpeakButton word={answerWord} />
           </div>
         )}
       </div>

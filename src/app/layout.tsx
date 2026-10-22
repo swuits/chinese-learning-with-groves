@@ -42,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SiteHeader />
           <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-20 pt-6 sm:px-6">{children}</main>
           <footer className="border-t border-line py-6 text-center text-sm text-ink-soft">
-            学而时习之 — <span className="italic">to learn, and to practise what you learn</span>
+            学而时习之 — <span className="italic">to learn, and to practice what you learn</span>
           </footer>
         </AuthProvider>
       </body>

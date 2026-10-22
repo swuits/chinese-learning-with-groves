@@ -1,30 +1,72 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { canSpeak, speak } from "@/lib/speech";
+import { useEffect, useRef, useState } from "react";
+import { speakFallback } from "@/lib/speech";
+import { audioUrl } from "@/lib/vocab/audio";
+import type { Word } from "@/lib/vocab/types";
 
 interface SpeakButtonProps {
-  text: string;
+  word: Word;
   label?: string;
 }
 
-const noopSubscribe = () => () => {};
+export function SpeakButton({ word, label = "Hear it" }: SpeakButtonProps) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const url = audioUrl(word);
 
-export function SpeakButton({ text, label = "Hear it" }: SpeakButtonProps) {
-  const isSupported = useSyncExternalStore(noopSubscribe, canSpeak, () => false);
-  if (!isSupported) return null;
+  // Load the recording as soon as the word appears so the first tap is instant.
+  useEffect(() => {
+    const audio = new Audio(url);
+    audio.preload = "auto";
+    const stop = () => setIsPlaying(false);
+    audio.addEventListener("ended", stop);
+    audio.addEventListener("pause", stop);
+    audioRef.current = audio;
+
+    return () => {
+      audio.removeEventListener("ended", stop);
+      audio.removeEventListener("pause", stop);
+      audio.pause();
+      audioRef.current = null;
+    };
+  }, [url]);
+
+  const play = async () => {
+    const audio = audioRef.current;
+    // Ignore taps mid-clip: restarting a sound while it plays is what makes it crackle.
+    if (isPlaying) return;
+
+    if (audio) {
+      try {
+        audio.currentTime = 0;
+        setIsPlaying(true);
+        await audio.play();
+        return;
+      } catch {
+        setIsPlaying(false);
+      }
+    }
+    await speakFallback(word.hanzi);
+  };
 
   return (
     <button
       type="button"
+      aria-label={`${label}: ${word.pinyin}`}
+      aria-busy={isPlaying}
       onClick={(event) => {
         event.stopPropagation();
-        speak(text);
+        void play();
       }}
-      className="press inline-flex items-center gap-2 rounded-full border border-line bg-paper px-4 py-2 text-sm font-bold"
+      className={`press inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-bold ${
+        isPlaying ? "bg-leaf text-ink" : "bg-paper"
+      }`}
     >
-      <span aria-hidden>🔊</span>
-      {label}
+      <span aria-hidden className={isPlaying ? "pop inline-block" : "inline-block"}>
+        🔊
+      </span>
+      {isPlaying ? "Playing…" : label}
     </button>
   );
 }

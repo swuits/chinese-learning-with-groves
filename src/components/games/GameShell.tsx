@@ -45,7 +45,7 @@ export function GameShell({ title, kicker, blurb, wordCount, glyph, children }: 
         <p className="mt-3 max-w-md text-ink-soft">{blurb}</p>
 
         <div className="mt-8">
-          <p className="mb-3 text-sm font-bold">What do you want to practise?</p>
+          <p className="mb-3 text-sm font-bold">What do you want to practice?</p>
           <CategoryPicker value={choice} onChange={setChoice} />
         </div>
 

@@ -1,6 +1,6 @@
 # Chinese Learning with Groves 🎋
 
-Practise the Chinese words that matter most with flashcards, quizzes and a matching game.
+Practice the Chinese words that matter most with flashcards, quizzes and a matching game.
 Every word you master makes a stalk of bamboo in your grove grow taller.
 
 - **100 essential words** across 8 topics (greetings, numbers, people, food, actions, places, time, describing)
@@ -32,6 +32,21 @@ E2E_BASE_URL=https://your-site.vercel.app npm run test:e2e   # same tests agains
 
 The e2e tests create accounts named `groves-e2e-*@example.com`. Remove them afterwards with
 `delete from auth.users where email like 'groves-e2e-%@example.com'` (progress rows cascade).
+
+## Word audio
+
+Every word has a recording in `public/audio/` (neural Mandarin voice `zh-CN-XiaoxiaoNeural`, trimmed,
+loudness-matched and faded at the edges so playback never clicks). Filenames come from
+`audioKey()` in `src/lib/vocab/audio.ts`, and a test fails if any word is missing its file.
+
+After adding words, regenerate only the new ones:
+
+```bash
+pip install edge-tts      # plus ffmpeg on your PATH
+npm run audio             # add --force to re-record everything
+```
+
+If a recording ever fails to load, the button falls back to the browser's best Chinese voice.
 
 ## How accounts and sync work
 

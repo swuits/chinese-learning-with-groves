@@ -121,3 +121,21 @@ test("signed-in visitors skip the login page", async ({ page }) => {
   await page.goto("/login");
   await expect(page).toHaveURL(/^https?:\/\/[^/]+\/$/);
 });
+
+test("the hear-it button plays a real recording and returns to ready", async ({ page }) => {
+  await signUp(page, newEmail(), "/login?next=/learn");
+  await expect(page).toHaveURL(/\/learn$/, { timeout: 20_000 });
+
+  // The recording is fetched as soon as the card appears, so listen before starting.
+  const recording = page.waitForResponse((r) => r.url().includes("/audio/") && r.ok());
+  await page.getByRole("button", { name: /Start/ }).click();
+  await page.getByRole("button", { name: /Tap to reveal/ }).click();
+
+  const response = await recording;
+  expect(response.headers()["content-type"]).toContain("audio/mpeg");
+
+  const hear = page.getByRole("button", { name: /^Hear it/ });
+  await hear.click();
+  await expect(hear).toContainText("Playing…");
+  await expect(hear).toContainText("Hear it", { timeout: 5_000 });
+});

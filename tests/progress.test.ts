@@ -53,7 +53,7 @@ describe("streaks", () => {
     expect(recordAnswer(EMPTY_PROGRESS, "w1", true, T0).streak).toBe(1);
   });
 
-  it("stays the same when practising twice on the same day", () => {
+  it("stays the same when practicing twice on the same day", () => {
     const a = recordAnswer(EMPTY_PROGRESS, "w1", true, T0);
     const b = recordAnswer(a, "w2", true, T0 + 1000);
     expect(b.streak).toBe(1);
